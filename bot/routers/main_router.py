@@ -44,3 +44,8 @@ async def command_start_handler(message: Message) -> None:
 async def command_start_handler(call: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await send_welcome_message(call.message, edit_message=True)
+
+
+@main_router.message(F.text == ua_config.get('buttons', 'tumbochka'))
+async def command_start_handler(message: Message) -> None:
+    await message.answer(ua_config.get('prompts', 'tumbochka_empty'), reply_markup=MainKeyboards.tumbochka_keyboard())

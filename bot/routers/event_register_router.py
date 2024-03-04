@@ -34,7 +34,11 @@ async def send_events_main_page(message: Message, state: FSMContext, reply: bool
     events_to_render = []
     for event in events:
         events_to_render.append([event.id, event.title])
-    if reply:
+    if len(events_to_render) == 0:
+        await message.answer(
+            text=ua_config.get('event_registrations', 'no_events')
+        )
+    elif reply:
         await message.reply(
             text=ua_config.get('event_registrations', 'select_event'),
             reply_markup=EventKeyboards.generate_event_list(events_to_render),

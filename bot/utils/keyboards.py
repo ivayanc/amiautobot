@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, KeyboardBu
 
 from bot.utils.constants import Gender
 
-from configuration import ua_config
+from configuration import ua_config, DONATION_LINK
 
 
 class MainKeyboards:
@@ -24,7 +24,8 @@ class MainKeyboards:
                     KeyboardButton(text=ua_config.get('buttons', 'help'))
                 ],
                 [
-                    KeyboardButton(text=ua_config.get('buttons', 'events'))
+                    KeyboardButton(text=ua_config.get('buttons', 'events')),
+                    KeyboardButton(text=ua_config.get('buttons', 'tumbochka'))
                 ]
             ],
             resize_keyboard=True
@@ -49,6 +50,20 @@ class MainKeyboards:
             inline_keyboard=[
                 [
                     InlineKeyboardButton(text=ua_config.get('yes_no', 'yes'), callback_data='yes'),
+                ]
+            ],
+        )
+        return keyboard
+
+    @staticmethod
+    def tumbochka_keyboard():
+        keyboard = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text=ua_config.get('buttons', 'donation_jar'), url=DONATION_LINK),
+                ],
+                [
+                    InlineKeyboardButton(text=ua_config.get('buttons', 'close'), callback_data='close')
                 ]
             ],
         )
