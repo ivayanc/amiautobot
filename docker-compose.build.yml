@@ -1,0 +1,47 @@
+version: '3.7'
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bot-image:dev
+    command: >
+      sh -c "alembic upgrade head &&
+             python main.py"
+    volumes:
+      - .:/bot
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+
+  background_tasks:
+    image: bot-image:dev
+    volumes:
+      - .:/bot
+    command: celery -A background_tasks worker -l info
+    env_file:
+      - ./.env
+    depends_on:
+      - redis
+
+  admin_panel:
+    image: bot-image:dev
+    volumes:
+      - .:/bot
+    expose:
+      - 5000
+    depends_on:
+      - bot
+    env_file:
+      - ./.env
+    command: python app.py
+
+  redis:
+    image: redis:6.0.6-alpine
+    expose:
+      - 6379
+
+volumes:
+    bot:
