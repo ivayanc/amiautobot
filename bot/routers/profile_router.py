@@ -46,6 +46,7 @@ async def profile_handler(message: Message, user: User, state: FSMContext) -> No
 @profile_router.callback_query(F.data == 'manage_profile')
 async def command_start_profile_editing(call: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(ManageProfileForm.full_name)
+    await state.update_data(prev_message_id=call.message.message_id)
     await call.message.bot.edit_message_text(text=ua_config.get('profile_prompts', 'enter_full_name'),
                                              message_id=call.message.message_id,
                                              chat_id=call.message.chat.id,
@@ -78,8 +79,9 @@ async def process_validate_callback(call: CallbackQuery, state: FSMContext) -> N
 
     if new_message:
         await call.message.edit_reply_markup(reply_markup=None)
-        await call.bot.send_message(chat_id=call.message.chat.id,
-                                    text=text, reply_markup=reply_markup)
+        message = await call.bot.send_message(chat_id=call.message.chat.id,
+                                              text=text, reply_markup=reply_markup)
+        await state.update_data(prev_message_id=message.message_id)
     else:
         await call.bot.edit_message_text(message_id=call.message.message_id,
                                          chat_id=call.message.chat.id,
@@ -100,14 +102,20 @@ async def process_try_again_callback(call: CallbackQuery, state: FSMContext):
         text = "Unknown state"
 
     await call.message.edit_reply_markup(reply_markup=None)
-    await call.bot.edit_message_text(message_id=call.message.message_id,
-                                     chat_id=call.message.chat.id,
-                                     text=text,
-                                     reply_markup=ProfileKeyboards.skip_question_keyboard())
+    message = await call.bot.edit_message_text(message_id=call.message.message_id,
+                                               chat_id=call.message.chat.id,
+                                               text=text,
+                                               reply_markup=ProfileKeyboards.skip_question_keyboard())
+    await state.update_data(prev_message_id=message.message_id)
 
 
 @profile_router.callback_query(ManageProfileForm.gender)
 async def process_gender(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.message.bot.edit_message_reply_markup(
+        message_id=callback.message.message_id,
+        chat_id=callback.message.chat.id,
+        reply_markup=None
+    )
     gender = callback.data if callback.data != 'skip_question' else None
     data = await state.get_data()
     with session() as s:
@@ -128,6 +136,14 @@ async def process_gender(callback: CallbackQuery, state: FSMContext) -> None:
 @profile_router.message(ManageProfileForm.academic_group)
 @profile_router.message(ManageProfileForm.instagram)
 async def process_manage_profile_reply(message: Message, state: FSMContext):
+    data = await state.get_data()
+    prev_message_id = data.get('prev_message_id')
+    if prev_message_id:
+        await message.bot.edit_message_reply_markup(
+            chat_id=message.chat.id,
+            message_id=prev_message_id,
+            reply_markup=None
+        )
     await state.update_data(reply_info=message.text)
     await message.reply(ua_config.get(
         'profile_prompts', 'validate_data'
@@ -140,9 +156,13 @@ async def process_manage_profile_reply(message: Message, state: FSMContext):
 async def process_manage_profile_reply(callback: CallbackQuery, state: FSMContext):
     if callback.data == 'skip_question':
         await state.update_data(reply_info=None)
-        await callback.message.reply(ua_config.get(
-            'profile_prompts', 'validate_skip_data'
-        ), reply_markup=ProfileKeyboards.validate_keyboard())
+        message = await callback.message.bot.edit_message_text(
+            text=ua_config.get('profile_prompts', 'validate_skip_data'),
+            reply_markup=ProfileKeyboards.validate_keyboard(),
+            chat_id=callback.message.chat.id,
+            message_id=callback.message.message_id
+        )
+        await state.update_data(prev_message_id=message.message_id)
 
 
 @profile_router.callback_query(F.data == 'my_events')
@@ -175,7 +195,9 @@ async def my_event_selection_handler(callback: CallbackQuery, state: FSMContext)
     title = event.title
     description = event.description
     final_text = await generate_event_text(title, description)
-    current_status = ua_config.get('profile_prompts', 'registration_approved') if registration.is_approved else ua_config.get('profile_prompts', 'registration_awaiting_approval')
+    current_status = ua_config.get('profile_prompts',
+                                   'registration_approved') if registration.is_approved else ua_config.get(
+        'profile_prompts', 'registration_awaiting_approval')
     final_text = f'{final_text}\n\n*{current_status}*'
     await callback.message.bot.send_photo(
         chat_id=callback.message.chat.id,
