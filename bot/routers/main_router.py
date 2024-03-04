@@ -35,6 +35,7 @@ async def command_start_handler(message: Message) -> None:
 
 
 @main_router.message(F.text == ua_config.get('buttons', 'help'))
+@main_router.message(Command(commands=['help']))
 async def command_start_handler(message: Message) -> None:
     await message.answer(ua_config.get('prompts', 'help_message'))
 

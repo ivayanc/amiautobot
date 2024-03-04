@@ -11,6 +11,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from configuration import BOT_TOKEN, USE_REDIS
 from bot.routers.main_router import main_router
 from bot.middlewares.user_base import UserToContextMiddleware, UpdateUsernameMiddleware
+from bot.middlewares.only_private import AnswerOnlyInPrivateChats
 
 
 async def main() -> None:
@@ -22,6 +23,7 @@ async def main() -> None:
     dp = Dispatcher(storage=storage)
     dp.message.middleware(UserToContextMiddleware())
     dp.message.middleware(UpdateUsernameMiddleware())
+    dp.message.middleware(AnswerOnlyInPrivateChats())
     bot = Bot(BOT_TOKEN)
     dp.include_router(main_router)
     await dp.start_polling(bot)
