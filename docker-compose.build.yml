@@ -31,7 +31,7 @@ services:
     volumes:
       - .:/bot
     expose:
-      - 5000
+      - 4000
     depends_on:
       - bot
     env_file:
