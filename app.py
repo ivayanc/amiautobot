@@ -33,6 +33,6 @@ admin.add_view(EventRegistrationView(EventRegistration, current_session))
 if __name__ == '__main__':
     from gevent.pywsgi import WSGIServer
     logger.error("Starting admin panel")
-    http_server = WSGIServer(('localhost', 4000), app)
+    http_server = WSGIServer(('', 4000), app)
     logger.error("Http server configured")
     http_server.serve_forever()
