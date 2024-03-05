@@ -81,12 +81,12 @@ async def process_validate_callback(call: CallbackQuery, state: FSMContext) -> N
         await call.message.edit_reply_markup(reply_markup=None)
         message = await call.bot.send_message(chat_id=call.message.chat.id,
                                               text=text, reply_markup=reply_markup)
-        await state.update_data(prev_message_id=message.message_id)
     else:
-        await call.bot.edit_message_text(message_id=call.message.message_id,
-                                         chat_id=call.message.chat.id,
-                                         text=text,
-                                         reply_markup=reply_markup)
+        message = await call.bot.edit_message_text(message_id=call.message.message_id,
+                                                   chat_id=call.message.chat.id,
+                                                   text=text,
+                                                   reply_markup=reply_markup)
+    await state.update_data(prev_message_id=message.message_id)
 
 
 @profile_router.callback_query(F.data == 'try_again')
@@ -138,6 +138,7 @@ async def process_gender(callback: CallbackQuery, state: FSMContext) -> None:
 async def process_manage_profile_reply(message: Message, state: FSMContext):
     data = await state.get_data()
     prev_message_id = data.get('prev_message_id')
+    print(prev_message_id)
     if prev_message_id:
         await message.bot.edit_message_reply_markup(
             chat_id=message.chat.id,
