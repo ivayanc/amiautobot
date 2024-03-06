@@ -1,7 +1,8 @@
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart, Command, CommandObject
+from aiogram.utils.deep_linking import decode_payload
 
 from database.models.user import User
 
@@ -9,7 +10,7 @@ from bot.utils.keyboards import MainKeyboards
 from bot.routers.profile_router import profile_router
 from bot.routers.faq_router import faq_router
 from bot.routers.admin_event_router import admin_event_router
-from bot.routers.event_register_router import event_router
+from bot.routers.event_register_router import event_router, send_event_registration
 
 from configuration import ua_config
 
@@ -30,8 +31,13 @@ async def send_welcome_message(message: Message, edit_message: bool = False) -> 
 
 
 @main_router.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
-    await send_welcome_message(message)
+async def command_start_handler(message: Message, command: CommandObject) -> None:
+    args = command.args
+    if args and 'event_select_' in args:
+        event_id = int(args.split('_')[-1])
+        await send_event_registration(event_id=event_id, message=message, back_button=False)
+    else:
+        await send_welcome_message(message)
 
 
 @main_router.message(F.text == ua_config.get('buttons', 'help'))

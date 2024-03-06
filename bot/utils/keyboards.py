@@ -195,15 +195,18 @@ class EventKeyboards:
         return keyboard
 
     @staticmethod
-    def generate_event_register(event_id):
+    def generate_event_register(event_id, back_button=True):
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text=ua_config.get('event_registrations', 'register_on_event'), callback_data=f'event_register_{event_id}')
-            ],
-            [
-                InlineKeyboardButton(text=ua_config.get('buttons', 'back'), callback_data='event_registration_back')
             ]
         ])
+        if back_button:
+            keyboard.inline_keyboard.append(
+                [
+                    InlineKeyboardButton(text=ua_config.get('buttons', 'back'), callback_data='event_registration_back')
+                ]
+            )
         return keyboard
 
     @staticmethod

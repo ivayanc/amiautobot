@@ -27,6 +27,27 @@ from configuration import ua_config
 event_router = Router()
 
 
+async def send_event_registration(event_id: int, message: Message, back_button=True):
+    with session() as s:
+        event = s.query(Event).filter(Event.id == event_id).first()
+    if not event or not event.is_registration_enabled:
+        await message.answer(
+            text=ua_config.get('event_registrations', 'registration_ends')
+        )
+    else:
+        title = event.title
+        description = event.description
+        photo = event.photo
+        event_text = await generate_event_text(title, description)
+        await message.bot.send_photo(
+            caption=event_text,
+            photo=photo,
+            reply_markup=EventKeyboards.generate_event_register(event_id, back_button),
+            parse_mode=ParseMode.MARKDOWN_V2,
+            chat_id=message.chat.id
+        )
+
+
 async def send_events_main_page(message: Message, state: FSMContext, reply: bool = True):
     await state.clear()
     with session() as s:
@@ -62,24 +83,7 @@ async def event_register_selection_handler(callback: CallbackQuery, state: FSMCo
         chat_id=callback.message.chat.id
     )
     event_id = int(callback.data.split('_')[-1])
-    with session() as s:
-        event = s.query(Event).filter(Event.id == event_id).first()
-    if not event or not event.is_registration_enabled:
-        await callback.message.answer(
-            text=ua_config.get('event_registrations', 'registration_ends')
-        )
-    else:
-        title = event.title
-        description = event.description
-        photo = event.photo
-        event_text = await generate_event_text(title, description)
-        await callback.message.bot.send_photo(
-            caption=event_text,
-            photo=photo,
-            reply_markup=EventKeyboards.generate_event_register(event_id),
-            parse_mode=ParseMode.MARKDOWN_V2,
-            chat_id=callback.message.chat.id
-        )
+    await send_event_registration(event_id=event_id, message=callback.message)
 
 
 @event_router.callback_query(F.data.startswith('event_register_'))
@@ -114,7 +118,8 @@ async def event_register_selection_handler(callback: CallbackQuery, state: FSMCo
 async def event_register_is_ami_handler_handler(callback: CallbackQuery, state: FSMContext) -> None:
     await state.update_data(is_ami_student=True if callback.data == 'yes' else False)
     await callback.message.edit_text(
-        text=ua_config.get('event_registrations', 'enter_codingame_username')
+        text=ua_config.get('event_registrations', 'enter_codingame_username'),
+        parse_mode=ParseMode.MARKDOWN_V2
     )
     await state.set_state(EventRegistrationForm.codingame_username)
 
