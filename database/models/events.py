@@ -59,7 +59,7 @@ class EventRegistration(Base):
 
 
 class EventRegistrationView(ModelView):
-    column_list = ('id', 'event_id', 'user_id', 'is_ami_student', 'codingame_username', 'is_approved')
-    form_columns = ('id', 'event_id', 'user_id', 'is_ami_student', 'codingame_username', 'is_approved')
+    column_list = ('id', 'event_id', 'user_id', 'is_ami_student', 'codingame_username', 'is_approved', 'division')
+    form_columns = ('id', 'event_id', 'user_id', 'is_ami_student', 'codingame_username', 'is_approved', 'division')
     column_filters = ('event_id', 'is_approved')
     page_size = ADMIN_PANEL_PAGE_SIZE
