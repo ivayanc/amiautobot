@@ -38,7 +38,7 @@ async def command_start_handler(message: Message, command: CommandObject) -> Non
         await send_event_registration(event_id=event_id, message=message, back_button=False)
     elif args and 'uniweek' in args:
         await message.bot.send_photo(chat_id=message.chat.id, caption=ua_config.get('uniweek', 'uniweek_test'),
-                                     photo='https://marbled-equinox-e70.notion.site/image/https%3A%2F%2Fprod-files-secure.s3.us-west-2.amazonaws.com%2F60786ec7-afcf-40c9-89e0-063dc40af5f5%2F97a12e0c-5794-4bee-858d-6e6d6e0056f4%2F%25D0%2597%25D0%25BD%25D1%2596%25D0%25BC%25D0%25BE%25D0%25BA_%25D0%25B5%25D0%25BA%25D1%2580%25D0%25B0%25D0%25BD%25D0%25B0_2024-04-19_014732.png?table=block&id=f41b32cb-6429-493d-9ffc-51faf294e053&spaceId=60786ec7-afcf-40c9-89e0-063dc40af5f5&width=2000&userId=&cache=v2')
+                                     photo='https://ibb.co/W6vw9H4')
     else:
         await send_welcome_message(message)
 
